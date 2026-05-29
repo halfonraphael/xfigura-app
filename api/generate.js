@@ -14,8 +14,8 @@ export default async function handler(req, res) {
   }
 
   // Flux.1-dev : meilleure qualité architecturale
-  const model = 'black-forest-labs/FLUX.1-dev';
-  const url = `https://api-inference.huggingface.co/models/${model}`;
+  const model = 'black-forest-labs/FLUX.1-schnell';
+  const url = `https://router.huggingface.co/hf-inference/models/${model}`;
 
   // Adapter les dimensions selon l'aspect ratio
   const dimensions = {
