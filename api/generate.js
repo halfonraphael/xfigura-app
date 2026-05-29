@@ -43,9 +43,9 @@ export default async function handler(req, res) {
       base64Image = Buffer.from(await response.arrayBuffer()).toString('base64');
 
     } else {
-      // text2img — SDXL via hf-inference (gratuit)
+      // text2img — FLUX.1-schnell via hf-inference
       const response = await fetch(
-        'https://router.huggingface.co/hf-inference/models/stabilityai/stable-diffusion-xl-base-1.0',
+        'https://router.huggingface.co/hf-inference/models/black-forest-labs/FLUX.1-schnell',
         {
           method: 'POST',
           headers: {
@@ -55,7 +55,7 @@ export default async function handler(req, res) {
           },
           body: JSON.stringify({
             inputs: prompt,
-            parameters: { width, height, num_inference_steps: 30 },
+            parameters: { width, height, num_inference_steps: 4 },
           }),
         }
       );
