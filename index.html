@@ -1,0 +1,362 @@
+<!DOCTYPE html>
+<html lang="fr">
+<head>
+  <meta charset="UTF-8" />
+  <meta name="viewport" content="width=device-width, initial-scale=1.0" />
+  <title>xFigura — Idéation IA pour architectes</title>
+  <style>
+    *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
+
+    :root {
+      --bg: #0d0d0d;
+      --surface: #1a1a1a;
+      --border: #2e2e2e;
+      --accent: #c8ff00;
+      --text: #f0f0f0;
+      --muted: #666;
+      --radius: 12px;
+    }
+
+    body {
+      background: var(--bg);
+      color: var(--text);
+      font-family: 'Inter', system-ui, sans-serif;
+      min-height: 100vh;
+      display: flex;
+      flex-direction: column;
+    }
+
+    header {
+      padding: 24px 32px;
+      border-bottom: 1px solid var(--border);
+      display: flex;
+      align-items: center;
+      gap: 12px;
+    }
+
+    header h1 {
+      font-size: 1.4rem;
+      font-weight: 700;
+      letter-spacing: -0.5px;
+    }
+
+    header span {
+      color: var(--accent);
+    }
+
+    main {
+      flex: 1;
+      display: grid;
+      grid-template-columns: 380px 1fr;
+      gap: 0;
+      height: calc(100vh - 73px);
+    }
+
+    .sidebar {
+      border-right: 1px solid var(--border);
+      padding: 28px 24px;
+      display: flex;
+      flex-direction: column;
+      gap: 20px;
+      overflow-y: auto;
+    }
+
+    .sidebar label {
+      font-size: 0.75rem;
+      font-weight: 600;
+      text-transform: uppercase;
+      letter-spacing: 0.08em;
+      color: var(--muted);
+      display: block;
+      margin-bottom: 8px;
+    }
+
+    textarea {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: var(--radius);
+      color: var(--text);
+      font-size: 0.95rem;
+      line-height: 1.6;
+      padding: 14px 16px;
+      resize: vertical;
+      min-height: 140px;
+      outline: none;
+      transition: border-color 0.2s;
+    }
+
+    textarea:focus { border-color: var(--accent); }
+    textarea::placeholder { color: var(--muted); }
+
+    .suggestions {
+      display: flex;
+      flex-wrap: wrap;
+      gap: 8px;
+    }
+
+    .chip {
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 999px;
+      padding: 6px 14px;
+      font-size: 0.8rem;
+      cursor: pointer;
+      transition: all 0.15s;
+      color: var(--text);
+    }
+
+    .chip:hover {
+      border-color: var(--accent);
+      color: var(--accent);
+    }
+
+    .options {
+      display: flex;
+      flex-direction: column;
+      gap: 12px;
+    }
+
+    select {
+      width: 100%;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      font-size: 0.9rem;
+      padding: 10px 12px;
+      outline: none;
+      cursor: pointer;
+    }
+
+    select:focus { border-color: var(--accent); }
+
+    .generate-btn {
+      background: var(--accent);
+      color: #000;
+      border: none;
+      border-radius: var(--radius);
+      padding: 14px;
+      font-size: 1rem;
+      font-weight: 700;
+      cursor: pointer;
+      width: 100%;
+      transition: opacity 0.2s;
+      letter-spacing: 0.02em;
+    }
+
+    .generate-btn:hover { opacity: 0.85; }
+    .generate-btn:disabled { opacity: 0.4; cursor: not-allowed; }
+
+    .canvas {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      justify-content: center;
+      padding: 32px;
+      gap: 20px;
+      background: var(--bg);
+    }
+
+    .canvas-placeholder {
+      display: flex;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      color: var(--muted);
+      text-align: center;
+    }
+
+    .canvas-placeholder svg {
+      opacity: 0.3;
+    }
+
+    .canvas-placeholder p {
+      font-size: 0.9rem;
+      max-width: 300px;
+      line-height: 1.6;
+    }
+
+    #result-img {
+      max-width: 100%;
+      max-height: calc(100vh - 180px);
+      border-radius: var(--radius);
+      box-shadow: 0 24px 80px rgba(0,0,0,0.6);
+      display: none;
+    }
+
+    .loading {
+      display: none;
+      flex-direction: column;
+      align-items: center;
+      gap: 16px;
+      color: var(--muted);
+    }
+
+    .spinner {
+      width: 40px;
+      height: 40px;
+      border: 3px solid var(--border);
+      border-top-color: var(--accent);
+      border-radius: 50%;
+      animation: spin 0.8s linear infinite;
+    }
+
+    @keyframes spin { to { transform: rotate(360deg); } }
+
+    .error-msg {
+      background: #2a1010;
+      border: 1px solid #5a2020;
+      border-radius: 8px;
+      padding: 12px 16px;
+      color: #ff8080;
+      font-size: 0.85rem;
+      display: none;
+      max-width: 500px;
+      text-align: center;
+    }
+
+    .download-btn {
+      display: none;
+      background: var(--surface);
+      border: 1px solid var(--border);
+      border-radius: 8px;
+      color: var(--text);
+      padding: 10px 20px;
+      font-size: 0.85rem;
+      cursor: pointer;
+      transition: border-color 0.2s;
+    }
+
+    .download-btn:hover { border-color: var(--accent); color: var(--accent); }
+  </style>
+</head>
+<body>
+
+<header>
+  <h1>x<span>Figura</span></h1>
+  <span style="color: var(--muted); font-size:0.85rem; margin-left:8px;">Idéation IA pour architectes & designers</span>
+</header>
+
+<main>
+  <aside class="sidebar">
+
+    <div>
+      <label>Prompt architectural</label>
+      <textarea id="prompt" placeholder="Ex: bibliothèque de Rogelio Salmona à Bogotá, béton brut, lumière zénithale, coupe axonométrique…"></textarea>
+    </div>
+
+    <div>
+      <label>Suggestions rapides</label>
+      <div class="suggestions">
+        <button class="chip" onclick="appendChip('lumière naturelle zénithale')">lumière zénithale</button>
+        <button class="chip" onclick="appendChip('béton brut')">béton brut</button>
+        <button class="chip" onclick="appendChip('coupe architecturale')">coupe</button>
+        <button class="chip" onclick="appendChip('vue aérienne')">vue aérienne</button>
+        <button class="chip" onclick="appendChip('rendu photoréaliste')">photoréaliste</button>
+        <button class="chip" onclick="appendChip('ambiance brutaliste')">brutaliste</button>
+        <button class="chip" onclick="appendChip('plan masse')">plan masse</button>
+        <button class="chip" onclick="appendChip('perspective intérieure')">perspective int.</button>
+      </div>
+    </div>
+
+    <div class="options">
+      <div>
+        <label>Format</label>
+        <select id="aspect">
+          <option value="16:9">Paysage 16:9</option>
+          <option value="1:1">Carré 1:1</option>
+          <option value="9:16">Portrait 9:16</option>
+          <option value="4:3">4:3</option>
+        </select>
+      </div>
+    </div>
+
+    <button class="generate-btn" id="gen-btn" onclick="generate()">Générer →</button>
+
+  </aside>
+
+  <section class="canvas">
+    <div class="canvas-placeholder" id="placeholder">
+      <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
+        <rect x="3" y="3" width="18" height="18" rx="2"/>
+        <circle cx="8.5" cy="8.5" r="1.5"/>
+        <path d="M21 15l-5-5L5 21"/>
+      </svg>
+      <p>Décrivez votre vision architecturale et cliquez sur Générer</p>
+    </div>
+    <div class="loading" id="loading">
+      <div class="spinner"></div>
+      <span>Génération en cours…</span>
+    </div>
+    <div class="error-msg" id="error-msg"></div>
+    <img id="result-img" alt="Image générée" />
+    <button class="download-btn" id="download-btn" onclick="downloadImage()">↓ Télécharger</button>
+  </section>
+</main>
+
+<script>
+  function appendChip(text) {
+    const ta = document.getElementById('prompt');
+    ta.value = ta.value ? ta.value.trimEnd() + ', ' + text : text;
+    ta.focus();
+  }
+
+  async function generate() {
+    const prompt = document.getElementById('prompt').value.trim();
+    if (!prompt) return;
+
+    const aspect = document.getElementById('aspect').value;
+    const btn = document.getElementById('gen-btn');
+    const loading = document.getElementById('loading');
+    const placeholder = document.getElementById('placeholder');
+    const img = document.getElementById('result-img');
+    const errEl = document.getElementById('error-msg');
+    const dlBtn = document.getElementById('download-btn');
+
+    btn.disabled = true;
+    loading.style.display = 'flex';
+    placeholder.style.display = 'none';
+    img.style.display = 'none';
+    errEl.style.display = 'none';
+    dlBtn.style.display = 'none';
+
+    try {
+      const res = await fetch('/api/generate', {
+        method: 'POST',
+        headers: { 'Content-Type': 'application/json' },
+        body: JSON.stringify({ prompt, aspectRatio: aspect }),
+      });
+
+      const data = await res.json();
+
+      if (!res.ok) throw new Error(data.error || 'Erreur inconnue');
+
+      img.src = data.image;
+      img.style.display = 'block';
+      dlBtn.style.display = 'inline-block';
+    } catch (err) {
+      errEl.textContent = '⚠ ' + err.message;
+      errEl.style.display = 'block';
+      placeholder.style.display = 'flex';
+    } finally {
+      loading.style.display = 'none';
+      btn.disabled = false;
+    }
+  }
+
+  function downloadImage() {
+    const img = document.getElementById('result-img');
+    const a = document.createElement('a');
+    a.href = img.src;
+    a.download = 'xfigura-' + Date.now() + '.png';
+    a.click();
+  }
+
+  document.getElementById('prompt').addEventListener('keydown', (e) => {
+    if (e.key === 'Enter' && e.metaKey) generate();
+  });
+</script>
+
+</body>
+</html>
