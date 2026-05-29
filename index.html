@@ -3,360 +3,476 @@
 <head>
   <meta charset="UTF-8" />
   <meta name="viewport" content="width=device-width, initial-scale=1.0" />
-  <title>xFigura — Idéation IA pour architectes</title>
+  <title>xFigura — Workflow IA Architectural</title>
   <style>
     *, *::before, *::after { box-sizing: border-box; margin: 0; padding: 0; }
 
     :root {
       --bg: #0d0d0d;
       --surface: #1a1a1a;
+      --surface2: #111;
       --border: #2e2e2e;
       --accent: #c8ff00;
+      --blue: #6496ff;
       --text: #f0f0f0;
-      --muted: #666;
-      --radius: 12px;
+      --muted: #555;
+      --radius: 10px;
+      --node-w: 272px;
+      --port: 11px;
     }
 
     body {
       background: var(--bg);
       color: var(--text);
       font-family: 'Inter', system-ui, sans-serif;
-      min-height: 100vh;
+      height: 100vh;
       display: flex;
       flex-direction: column;
+      overflow: hidden;
+      user-select: none;
     }
 
     header {
-      padding: 24px 32px;
-      border-bottom: 1px solid var(--border);
       display: flex;
       align-items: center;
       gap: 12px;
-    }
-
-    header h1 {
-      font-size: 1.4rem;
-      font-weight: 700;
-      letter-spacing: -0.5px;
-    }
-
-    header span {
-      color: var(--accent);
-    }
-
-    main {
-      flex: 1;
-      display: grid;
-      grid-template-columns: 380px 1fr;
-      gap: 0;
-      height: calc(100vh - 73px);
-    }
-
-    .sidebar {
-      border-right: 1px solid var(--border);
-      padding: 28px 24px;
-      display: flex;
-      flex-direction: column;
-      gap: 20px;
-      overflow-y: auto;
-    }
-
-    .sidebar label {
-      font-size: 0.75rem;
-      font-weight: 600;
-      text-transform: uppercase;
-      letter-spacing: 0.08em;
-      color: var(--muted);
-      display: block;
-      margin-bottom: 8px;
-    }
-
-    textarea {
-      width: 100%;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: var(--radius);
-      color: var(--text);
-      font-size: 0.95rem;
-      line-height: 1.6;
-      padding: 14px 16px;
-      resize: vertical;
-      min-height: 140px;
-      outline: none;
-      transition: border-color 0.2s;
-    }
-
-    textarea:focus { border-color: var(--accent); }
-    textarea::placeholder { color: var(--muted); }
-
-    .suggestions {
-      display: flex;
-      flex-wrap: wrap;
-      gap: 8px;
-    }
-
-    .chip {
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 999px;
-      padding: 6px 14px;
-      font-size: 0.8rem;
-      cursor: pointer;
-      transition: all 0.15s;
-      color: var(--text);
-    }
-
-    .chip:hover {
-      border-color: var(--accent);
-      color: var(--accent);
-    }
-
-    .options {
-      display: flex;
-      flex-direction: column;
-      gap: 12px;
-    }
-
-    select {
-      width: 100%;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      color: var(--text);
-      font-size: 0.9rem;
-      padding: 10px 12px;
-      outline: none;
-      cursor: pointer;
-    }
-
-    select:focus { border-color: var(--accent); }
-
-    .generate-btn {
-      background: var(--accent);
-      color: #000;
-      border: none;
-      border-radius: var(--radius);
-      padding: 14px;
-      font-size: 1rem;
-      font-weight: 700;
-      cursor: pointer;
-      width: 100%;
-      transition: opacity 0.2s;
-      letter-spacing: 0.02em;
-    }
-
-    .generate-btn:hover { opacity: 0.85; }
-    .generate-btn:disabled { opacity: 0.4; cursor: not-allowed; }
-
-    .canvas {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      justify-content: center;
-      padding: 32px;
-      gap: 20px;
-      background: var(--bg);
-    }
-
-    .canvas-placeholder {
-      display: flex;
-      flex-direction: column;
-      align-items: center;
-      gap: 16px;
-      color: var(--muted);
-      text-align: center;
-    }
-
-    .canvas-placeholder svg {
-      opacity: 0.3;
-    }
-
-    .canvas-placeholder p {
-      font-size: 0.9rem;
-      max-width: 300px;
-      line-height: 1.6;
-    }
-
-    #result-img {
-      max-width: 100%;
-      max-height: calc(100vh - 180px);
-      border-radius: var(--radius);
-      box-shadow: 0 24px 80px rgba(0,0,0,0.6);
-      display: none;
-    }
-
-    .loading {
-      display: none;
-      flex-direction: column;
-      align-items: center;
-      gap: 16px;
-      color: var(--muted);
-    }
-
-    .spinner {
-      width: 40px;
-      height: 40px;
-      border: 3px solid var(--border);
-      border-top-color: var(--accent);
-      border-radius: 50%;
-      animation: spin 0.8s linear infinite;
-    }
-
-    @keyframes spin { to { transform: rotate(360deg); } }
-
-    .error-msg {
-      background: #2a1010;
-      border: 1px solid #5a2020;
-      border-radius: 8px;
-      padding: 12px 16px;
-      color: #ff8080;
-      font-size: 0.85rem;
-      display: none;
-      max-width: 500px;
-      text-align: center;
-    }
-
-    .download-btn {
-      display: none;
-      background: var(--surface);
-      border: 1px solid var(--border);
-      border-radius: 8px;
-      color: var(--text);
       padding: 10px 20px;
-      font-size: 0.85rem;
-      cursor: pointer;
-      transition: border-color 0.2s;
+      border-bottom: 1px solid var(--border);
+      background: var(--bg);
+      z-index: 50;
+      flex-shrink: 0;
+    }
+    header h1 { font-size: 1.15rem; font-weight: 700; letter-spacing: -.5px; }
+    header h1 span { color: var(--accent); }
+    header p { font-size: .78rem; color: var(--muted); }
+    .toolbar { margin-left: auto; display: flex; gap: 8px; }
+    .btn {
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 8px; color: var(--text);
+      padding: 6px 14px; font-size: .8rem; cursor: pointer;
+      transition: border-color .15s, color .15s;
+    }
+    .btn:hover { border-color: var(--accent); color: var(--accent); }
+    .btn.danger:hover { border-color: #ff4444; color: #ff4444; }
+
+    #canvas {
+      flex: 1; position: relative; overflow: hidden;
+      background-image: radial-gradient(circle, #2a2a2a 1px, transparent 1px);
+      background-size: 28px 28px;
+      cursor: grab;
+    }
+    #canvas.panning { cursor: grabbing; }
+
+    #nodes-layer { position: absolute; top: 0; left: 0; transform-origin: 0 0; }
+
+    #svg-layer {
+      position: absolute; top: 0; left: 0;
+      width: 100%; height: 100%;
+      pointer-events: none; overflow: visible;
     }
 
-    .download-btn:hover { border-color: var(--accent); color: var(--accent); }
+    .node {
+      position: absolute; width: var(--node-w);
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: var(--radius); box-shadow: 0 12px 40px rgba(0,0,0,.6);
+    }
+    .node.selected { border-color: var(--accent); }
+
+    .node-head {
+      display: flex; align-items: center; gap: 8px;
+      padding: 9px 12px; border-bottom: 1px solid var(--border);
+      cursor: move; border-radius: var(--radius) var(--radius) 0 0;
+    }
+    .badge { font-size: .65rem; font-weight: 700; text-transform: uppercase; letter-spacing: .07em; padding: 2px 8px; border-radius: 999px; }
+    .badge-gen { background: rgba(200,255,0,.12); color: var(--accent); }
+    .badge-img { background: rgba(100,150,255,.12); color: var(--blue); }
+    .node-title { font-size: .8rem; font-weight: 600; flex: 1; white-space: nowrap; overflow: hidden; text-overflow: ellipsis; }
+    .del-btn { background: none; border: none; color: var(--muted); cursor: pointer; font-size: 1.1rem; line-height: 1; padding: 0 2px; }
+    .del-btn:hover { color: #ff4444; }
+
+    .node-body { padding: 10px 12px; display: flex; flex-direction: column; gap: 9px; }
+
+    .port-row { display: flex; align-items: center; gap: 7px; }
+    .port-row.out { justify-content: flex-end; }
+    .port {
+      width: var(--port); height: var(--port); border-radius: 50%;
+      border: 2px solid var(--border); background: #222;
+      cursor: crosshair; flex-shrink: 0;
+      transition: border-color .15s, background .15s, transform .12s;
+      pointer-events: all;
+    }
+    .port:hover, .port.lit { border-color: var(--accent); background: var(--accent); transform: scale(1.35); }
+    .port[data-kind="in"]:hover { border-color: var(--blue); background: var(--blue); }
+    .port-lbl { font-size: .72rem; color: var(--muted); }
+
+    textarea.ctrl, select.ctrl {
+      width: 100%; background: var(--surface2); border: 1px solid var(--border);
+      border-radius: 7px; color: var(--text); font-family: inherit; outline: none;
+      transition: border-color .15s;
+    }
+    textarea.ctrl { font-size: .8rem; line-height: 1.55; padding: 9px 10px; resize: vertical; min-height: 76px; user-select: text; }
+    select.ctrl { font-size: .78rem; padding: 6px 10px; cursor: pointer; }
+    textarea.ctrl:focus, select.ctrl:focus { border-color: var(--accent); }
+
+    .gen-btn {
+      width: 100%; background: var(--accent); color: #000;
+      border: none; border-radius: 8px; padding: 9px;
+      font-size: .82rem; font-weight: 700; cursor: pointer; transition: opacity .2s;
+    }
+    .gen-btn:hover { opacity: .85; }
+    .gen-btn:disabled { opacity: .35; cursor: not-allowed; }
+
+    .node-img { width: 100%; border-radius: 6px; display: none; }
+
+    .spinner-row {
+      display: none; align-items: center; justify-content: center;
+      gap: 8px; padding: 16px; color: var(--muted); font-size: .75rem;
+    }
+    .spin {
+      width: 18px; height: 18px; border: 2px solid var(--border);
+      border-top-color: var(--accent); border-radius: 50%;
+      animation: rot .75s linear infinite;
+    }
+    @keyframes rot { to { transform: rotate(360deg); } }
+
+    .err-msg {
+      font-size: .73rem; color: #ff7070;
+      padding: 6px 8px; background: rgba(255,80,80,.08);
+      border-radius: 6px; display: none; user-select: text;
+    }
+
+    .upload-zone {
+      border: 2px dashed var(--border); border-radius: 8px; padding: 18px;
+      text-align: center; cursor: pointer; font-size: .75rem; color: var(--muted);
+      transition: border-color .15s, color .15s;
+      display: flex; flex-direction: column; align-items: center; gap: 6px;
+    }
+    .upload-zone:hover { border-color: var(--blue); color: var(--blue); }
+    .upload-zone.filled { padding: 3px; border-style: solid; border-color: var(--blue); }
+    .upload-zone input[type=file] { display: none; }
+
+    .conn { fill: none; stroke: var(--accent); stroke-width: 1.8; opacity: .55; }
+    .conn.tmp { stroke-dasharray: 6 3; opacity: .35; }
+
+    #hint {
+      position: fixed; bottom: 14px; left: 50%; transform: translateX(-50%);
+      background: var(--surface); border: 1px solid var(--border);
+      border-radius: 999px; padding: 5px 16px;
+      font-size: .72rem; color: var(--muted);
+      pointer-events: none; white-space: nowrap;
+    }
   </style>
 </head>
 <body>
 
 <header>
   <h1>x<span>Figura</span></h1>
-  <span style="color: var(--muted); font-size:0.85rem; margin-left:8px;">Idéation IA pour architectes & designers</span>
+  <p>Workflow IA pour architectes & designers</p>
+  <div class="toolbar">
+    <button class="btn" onclick="addNode('generate')">+ Génération</button>
+    <button class="btn" onclick="addNode('image')">+ Image</button>
+    <button class="btn danger" onclick="clearCanvas()">Tout effacer</button>
+  </div>
 </header>
 
-<main>
-  <aside class="sidebar">
+<div id="canvas">
+  <svg id="svg-layer" xmlns="http://www.w3.org/2000/svg">
+    <defs>
+      <marker id="arr" markerWidth="7" markerHeight="5" refX="7" refY="2.5" orient="auto">
+        <polygon points="0 0,7 2.5,0 5" fill="#c8ff00" opacity=".55"/>
+      </marker>
+    </defs>
+    <g id="conn-layer"></g>
+    <path id="tmp-conn" class="conn tmp" d="" style="display:none"/>
+  </svg>
+  <div id="nodes-layer"></div>
+</div>
 
-    <div>
-      <label>Prompt architectural</label>
-      <textarea id="prompt" placeholder="Ex: bibliothèque de Rogelio Salmona à Bogotá, béton brut, lumière zénithale, coupe axonométrique…"></textarea>
-    </div>
-
-    <div>
-      <label>Suggestions rapides</label>
-      <div class="suggestions">
-        <button class="chip" onclick="appendChip('lumière naturelle zénithale')">lumière zénithale</button>
-        <button class="chip" onclick="appendChip('béton brut')">béton brut</button>
-        <button class="chip" onclick="appendChip('coupe architecturale')">coupe</button>
-        <button class="chip" onclick="appendChip('vue aérienne')">vue aérienne</button>
-        <button class="chip" onclick="appendChip('rendu photoréaliste')">photoréaliste</button>
-        <button class="chip" onclick="appendChip('ambiance brutaliste')">brutaliste</button>
-        <button class="chip" onclick="appendChip('plan masse')">plan masse</button>
-        <button class="chip" onclick="appendChip('perspective intérieure')">perspective int.</button>
-      </div>
-    </div>
-
-    <div class="options">
-      <div>
-        <label>Format</label>
-        <select id="aspect">
-          <option value="16:9">Paysage 16:9</option>
-          <option value="1:1">Carré 1:1</option>
-          <option value="9:16">Portrait 9:16</option>
-          <option value="4:3">4:3</option>
-        </select>
-      </div>
-    </div>
-
-    <button class="generate-btn" id="gen-btn" onclick="generate()">Générer →</button>
-
-  </aside>
-
-  <section class="canvas">
-    <div class="canvas-placeholder" id="placeholder">
-      <svg width="64" height="64" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5">
-        <rect x="3" y="3" width="18" height="18" rx="2"/>
-        <circle cx="8.5" cy="8.5" r="1.5"/>
-        <path d="M21 15l-5-5L5 21"/>
-      </svg>
-      <p>Décrivez votre vision architecturale et cliquez sur Générer</p>
-    </div>
-    <div class="loading" id="loading">
-      <div class="spinner"></div>
-      <span>Génération en cours…</span>
-    </div>
-    <div class="error-msg" id="error-msg"></div>
-    <img id="result-img" alt="Image générée" />
-    <button class="download-btn" id="download-btn" onclick="downloadImage()">↓ Télécharger</button>
-  </section>
-</main>
+<div id="hint">Déplacer par l'en-tête • Drag depuis un port vert pour connecter • Cliquer une connexion pour la supprimer</div>
 
 <script>
-  function appendChip(text) {
-    const ta = document.getElementById('prompt');
-    ta.value = ta.value ? ta.value.trimEnd() + ', ' + text : text;
-    ta.focus();
+const S = {
+  nodes: {}, conns: {},
+  nid: 0, cid: 0,
+  pan: { x: 0, y: 0 },
+  isPanning: false, panOrigin: { x: 0, y: 0 },
+  linking: null,
+};
+
+const $canvas    = document.getElementById('canvas');
+const $nodesL    = document.getElementById('nodes-layer');
+const $connL     = document.getElementById('conn-layer');
+const $tmp       = document.getElementById('tmp-conn');
+
+// ── ADD NODE ──────────────────────────────
+function addNode(type) {
+  const id = ++S.nid;
+  const cx = $canvas.clientWidth  / 2 - 136 + (Math.random() - .5) * 100;
+  const cy = $canvas.clientHeight / 2 - 100 + (Math.random() - .5) * 80;
+  const x = cx - S.pan.x;
+  const y = cy - S.pan.y;
+  S.nodes[id] = { id, type, x, y, image: null };
+
+  const el = document.createElement('div');
+  el.className = 'node';
+  el.dataset.nid = id;
+  el.style.cssText = `left:${x}px;top:${y}px`;
+
+  if (type === 'generate') {
+    el.innerHTML = `
+      <div class="node-head">
+        <span class="badge badge-gen">Génération</span>
+        <span class="node-title">Prompt</span>
+        <button class="del-btn">×</button>
+      </div>
+      <div class="node-body">
+        <div class="port-row">
+          <div class="port" data-nid="${id}" data-pid="img-in" data-kind="in" title="Image source (optionnel)"></div>
+          <span class="port-lbl">Image source</span>
+        </div>
+        <textarea class="ctrl" placeholder="Ex: bibliothèque brutaliste, lumière zénithale, béton brut…" rows="3"></textarea>
+        <select class="ctrl">
+          <option value="1344x768">Paysage 16:9</option>
+          <option value="1024x1024">Carré 1:1</option>
+          <option value="768x1344">Portrait 9:16</option>
+          <option value="1152x896">4:3</option>
+        </select>
+        <button class="gen-btn">Générer →</button>
+        <div class="spinner-row"><div class="spin"></div><span>Génération en cours…</span></div>
+        <div class="err-msg"></div>
+        <img class="node-img" alt=""/>
+        <div class="port-row out">
+          <span class="port-lbl">Image</span>
+          <div class="port" data-nid="${id}" data-pid="img-out" data-kind="out"></div>
+        </div>
+      </div>`;
+    el.querySelector('.gen-btn').addEventListener('click', () => generate(id));
+  } else {
+    el.innerHTML = `
+      <div class="node-head">
+        <span class="badge badge-img">Image</span>
+        <span class="node-title">Source image</span>
+        <button class="del-btn">×</button>
+      </div>
+      <div class="node-body">
+        <label class="upload-zone" id="uz-${id}">
+          <input type="file" accept="image/*"/>
+          <svg width="22" height="22" viewBox="0 0 24 24" fill="none" stroke="currentColor" stroke-width="1.5" id="uz-icon-${id}"><path d="M21 15v4a2 2 0 01-2 2H5a2 2 0 01-2-2v-4M17 8l-5-5-5 5M12 3v12"/></svg>
+          <span id="uz-hint-${id}">Cliquer ou glisser une image</span>
+          <img class="node-img" id="uz-prev-${id}" style="display:none;width:100%" alt=""/>
+        </label>
+        <div class="port-row out">
+          <span class="port-lbl">Image</span>
+          <div class="port" data-nid="${id}" data-pid="img-out" data-kind="out"></div>
+        </div>
+      </div>`;
+    bindUpload(el, id);
   }
 
-  async function generate() {
-    const prompt = document.getElementById('prompt').value.trim();
-    if (!prompt) return;
+  $nodesL.appendChild(el);
+  bindDrag(el, id);
+  bindPorts(el, id);
+  el.querySelector('.del-btn').addEventListener('click', e => { e.stopPropagation(); deleteNode(id); });
+}
 
-    const aspect = document.getElementById('aspect').value;
-    const btn = document.getElementById('gen-btn');
-    const loading = document.getElementById('loading');
-    const placeholder = document.getElementById('placeholder');
-    const img = document.getElementById('result-img');
-    const errEl = document.getElementById('error-msg');
-    const dlBtn = document.getElementById('download-btn');
+// ── UPLOAD ────────────────────────────────
+function bindUpload(el, id) {
+  const input = el.querySelector('input[type=file]');
+  const zone  = document.getElementById(`uz-${id}`);
 
-    btn.disabled = true;
-    loading.style.display = 'flex';
-    placeholder.style.display = 'none';
-    img.style.display = 'none';
-    errEl.style.display = 'none';
-    dlBtn.style.display = 'none';
+  const applyFile = file => {
+    if (!file || !file.type.startsWith('image/')) return;
+    const reader = new FileReader();
+    reader.onload = e => {
+      S.nodes[id].image = e.target.result;
+      const prev = document.getElementById(`uz-prev-${id}`);
+      prev.src = e.target.result; prev.style.display = 'block';
+      document.getElementById(`uz-icon-${id}`).style.display = 'none';
+      document.getElementById(`uz-hint-${id}`).style.display = 'none';
+      zone.classList.add('filled');
+      refreshConns();
+    };
+    reader.readAsDataURL(file);
+  };
 
-    try {
-      const res = await fetch('/api/generate', {
-        method: 'POST',
-        headers: { 'Content-Type': 'application/json' },
-        body: JSON.stringify({ prompt, aspectRatio: aspect }),
-      });
+  input.addEventListener('change', () => applyFile(input.files[0]));
+  zone.addEventListener('dragover', e => { e.preventDefault(); e.stopPropagation(); });
+  zone.addEventListener('drop', e => { e.preventDefault(); e.stopPropagation(); applyFile(e.dataTransfer.files[0]); });
+}
 
-      const data = await res.json();
+// ── GENERATE ──────────────────────────────
+async function generate(id) {
+  const el     = document.querySelector(`[data-nid="${id}"]`);
+  const prompt = el.querySelector('textarea').value.trim();
+  if (!prompt) return;
+  const [w, h] = el.querySelector('select').value.split('x').map(Number);
+  const btn     = el.querySelector('.gen-btn');
+  const spinner = el.querySelector('.spinner-row');
+  const imgEl   = el.querySelector('.node-img');
+  const errEl   = el.querySelector('.err-msg');
 
-      if (!res.ok) throw new Error(data.error || 'Erreur inconnue');
+  btn.disabled = true; spinner.style.display = 'flex';
+  imgEl.style.display = 'none'; errEl.style.display = 'none';
 
-      img.src = data.image;
-      img.style.display = 'block';
-      dlBtn.style.display = 'inline-block';
-    } catch (err) {
-      errEl.textContent = '⚠ ' + err.message;
-      errEl.style.display = 'block';
-      placeholder.style.display = 'flex';
-    } finally {
-      loading.style.display = 'none';
-      btn.disabled = false;
+  let inputImage = null;
+  for (const c of Object.values(S.conns)) {
+    if (c.toNode === id && c.toPort === 'img-in') {
+      inputImage = S.nodes[c.fromNode]?.image ?? null;
     }
   }
 
-  function downloadImage() {
-    const img = document.getElementById('result-img');
-    const a = document.createElement('a');
-    a.href = img.src;
-    a.download = 'xfigura-' + Date.now() + '.png';
-    a.click();
+  try {
+    const res  = await fetch('/api/generate', {
+      method: 'POST',
+      headers: { 'Content-Type': 'application/json' },
+      body: JSON.stringify({ prompt, width: w, height: h, inputImage }),
+    });
+    const data = await res.json();
+    if (!res.ok) throw new Error(data.error || 'Erreur inconnue');
+    S.nodes[id].image = data.image;
+    imgEl.src = data.image; imgEl.style.display = 'block';
+    refreshConns();
+  } catch (err) {
+    errEl.textContent = '⚠ ' + err.message; errEl.style.display = 'block';
+  } finally {
+    btn.disabled = false; spinner.style.display = 'none';
   }
+}
 
-  document.getElementById('prompt').addEventListener('keydown', (e) => {
-    if (e.key === 'Enter' && e.metaKey) generate();
+// ── DELETE ────────────────────────────────
+function deleteNode(id) {
+  for (const [cid, c] of Object.entries(S.conns)) {
+    if (c.fromNode === id || c.toNode === id) {
+      document.getElementById(`c-${cid}`)?.remove();
+      delete S.conns[cid];
+    }
+  }
+  document.querySelector(`[data-nid="${id}"]`)?.remove();
+  delete S.nodes[id];
+}
+
+function clearCanvas() {
+  S.nodes = {}; S.conns = {};
+  $nodesL.innerHTML = ''; $connL.innerHTML = '';
+}
+
+// ── DRAG ──────────────────────────────────
+function bindDrag(el, id) {
+  el.querySelector('.node-head').addEventListener('mousedown', e => {
+    if (e.button !== 0 || e.target.classList.contains('del-btn')) return;
+    e.stopPropagation();
+    const ox = e.clientX - parseInt(el.style.left);
+    const oy = e.clientY - parseInt(el.style.top);
+    const mv = ev => {
+      el.style.left = (ev.clientX - ox) + 'px';
+      el.style.top  = (ev.clientY - oy) + 'px';
+      S.nodes[id].x = ev.clientX - ox;
+      S.nodes[id].y = ev.clientY - oy;
+      refreshConns();
+    };
+    const up = () => { document.removeEventListener('mousemove', mv); document.removeEventListener('mouseup', up); };
+    document.addEventListener('mousemove', mv);
+    document.addEventListener('mouseup', up);
   });
-</script>
+}
 
+// ── PORTS ─────────────────────────────────
+function bindPorts(el, nodeId) {
+  el.querySelectorAll('.port').forEach(port => {
+    port.addEventListener('mousedown', e => {
+      if (e.button !== 0 || port.dataset.kind !== 'out') return;
+      e.stopPropagation();
+      const pr = port.getBoundingClientRect();
+      const cr = $canvas.getBoundingClientRect();
+      S.linking = { fromNode: nodeId, fromPort: port.dataset.pid, sx: pr.left + pr.width/2 - cr.left, sy: pr.top + pr.height/2 - cr.top };
+      port.classList.add('lit');
+      $tmp.style.display = 'block';
+    });
+
+    port.addEventListener('mouseup', e => {
+      e.stopPropagation();
+      if (!S.linking || port.dataset.kind !== 'in' || S.linking.fromNode === nodeId) return;
+      for (const [cid, c] of Object.entries(S.conns)) {
+        if (c.toNode === nodeId && c.toPort === port.dataset.pid) {
+          document.getElementById(`c-${cid}`)?.remove(); delete S.conns[cid];
+        }
+      }
+      const cid = ++S.cid;
+      S.conns[cid] = { fromNode: S.linking.fromNode, fromPort: S.linking.fromPort, toNode: nodeId, toPort: port.dataset.pid };
+      drawConn(cid);
+      cancelLink();
+    });
+  });
+}
+
+function cancelLink() {
+  document.querySelectorAll('.port.lit').forEach(p => p.classList.remove('lit'));
+  S.linking = null; $tmp.style.display = 'none'; $tmp.setAttribute('d', '');
+}
+
+// ── DRAW CONNECTIONS ──────────────────────
+function bz(x1, y1, x2, y2) {
+  const cx = (x1 + x2) / 2;
+  return `M${x1},${y1} C${cx},${y1} ${cx},${y2} ${x2},${y2}`;
+}
+
+function portXY(nid, pid) {
+  const p = document.querySelector(`.port[data-nid="${nid}"][data-pid="${pid}"]`);
+  if (!p) return null;
+  const pr = p.getBoundingClientRect();
+  const cr = $canvas.getBoundingClientRect();
+  return { x: pr.left + pr.width/2 - cr.left, y: pr.top + pr.height/2 - cr.top };
+}
+
+function drawConn(cid) {
+  const c = S.conns[cid];
+  const a = portXY(c.fromNode, c.fromPort);
+  const b = portXY(c.toNode, c.toPort);
+  if (!a || !b) return;
+  let p = document.getElementById(`c-${cid}`);
+  if (!p) {
+    p = document.createElementNS('http://www.w3.org/2000/svg', 'path');
+    p.id = `c-${cid}`; p.className.baseVal = 'conn';
+    p.setAttribute('marker-end', 'url(#arr)');
+    p.style.pointerEvents = 'stroke'; p.style.cursor = 'pointer';
+    p.addEventListener('click', () => { p.remove(); delete S.conns[cid]; });
+    $connL.appendChild(p);
+  }
+  p.setAttribute('d', bz(a.x, a.y, b.x, b.y));
+}
+
+function refreshConns() { for (const cid of Object.keys(S.conns)) drawConn(cid); }
+
+// ── CANVAS PAN ────────────────────────────
+$canvas.addEventListener('mousedown', e => {
+  if (e.button !== 0) return;
+  const t = e.target;
+  if (t !== $canvas && t.id !== 'svg-layer' && !t.closest('#svg-layer')) return;
+  S.isPanning = true;
+  S.panOrigin = { x: e.clientX - S.pan.x, y: e.clientY - S.pan.y };
+  $canvas.classList.add('panning');
+});
+
+document.addEventListener('mousemove', e => {
+  if (S.isPanning) {
+    S.pan.x = e.clientX - S.panOrigin.x;
+    S.pan.y = e.clientY - S.panOrigin.y;
+    $nodesL.style.transform = `translate(${S.pan.x}px,${S.pan.y}px)`;
+    refreshConns();
+  }
+  if (S.linking) {
+    const cr = $canvas.getBoundingClientRect();
+    $tmp.setAttribute('d', bz(S.linking.sx, S.linking.sy, e.clientX - cr.left, e.clientY - cr.top));
+  }
+});
+
+document.addEventListener('mouseup', () => {
+  S.isPanning = false; $canvas.classList.remove('panning');
+  if (S.linking) cancelLink();
+});
+
+// ── INIT ──────────────────────────────────
+window.addEventListener('DOMContentLoaded', () => addNode('generate'));
+</script>
 </body>
 </html>
