@@ -43,21 +43,19 @@ export default async function handler(req, res) {
       base64Image = Buffer.from(await response.arrayBuffer()).toString('base64');
 
     } else {
-      // text2img — FLUX.1-dev via fal-ai provider
+      // text2img — SDXL via hf-inference (gratuit)
       const response = await fetch(
-        'https://router.huggingface.co/fal-ai/flux/schnell',
+        'https://router.huggingface.co/hf-inference/models/stabilityai/stable-diffusion-xl-base-1.0',
         {
           method: 'POST',
           headers: {
             Authorization: `Bearer ${hfToken}`,
             'Content-Type': 'application/json',
+            'x-wait-for-model': 'true',
           },
           body: JSON.stringify({
-            prompt,
-            image_size: { width, height },
-            num_inference_steps: 4,
-            num_images: 1,
-            enable_safety_checker: false,
+            inputs: prompt,
+            parameters: { width, height, num_inference_steps: 30 },
           }),
         }
       );
@@ -66,15 +64,7 @@ export default async function handler(req, res) {
         const txt = await response.text();
         return res.status(response.status).json({ error: txt });
       }
-
-      const data = await response.json();
-      // fal-ai returns image URLs or base64
-      const imgUrl = data.images?.[0]?.url;
-      if (!imgUrl) return res.status(500).json({ error: 'No image in response: ' + JSON.stringify(data) });
-
-      // fetch the image and convert to base64
-      const imgRes = await fetch(imgUrl);
-      base64Image = Buffer.from(await imgRes.arrayBuffer()).toString('base64');
+      base64Image = Buffer.from(await response.arrayBuffer()).toString('base64');
     }
 
     return res.status(200).json({ image: `data:image/jpeg;base64,${base64Image}` });
