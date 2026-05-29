@@ -43,9 +43,9 @@ export default async function handler(req, res) {
       base64Image = Buffer.from(await response.arrayBuffer()).toString('base64');
 
     } else {
-      // text2img — FLUX.1-schnell via Nebius (OpenAI-compatible)
+      // text2img — FLUX.1-dev via fal-ai provider
       const response = await fetch(
-        'https://router.huggingface.co/nebius/v1/images/generations',
+        'https://router.huggingface.co/fal-ai/flux/schnell',
         {
           method: 'POST',
           headers: {
@@ -53,12 +53,11 @@ export default async function handler(req, res) {
             'Content-Type': 'application/json',
           },
           body: JSON.stringify({
-            model: 'black-forest-labs/FLUX.1-schnell',
             prompt,
-            response_format: 'b64_json',
-            width,
-            height,
+            image_size: { width, height },
             num_inference_steps: 4,
+            num_images: 1,
+            enable_safety_checker: false,
           }),
         }
       );
@@ -69,8 +68,13 @@ export default async function handler(req, res) {
       }
 
       const data = await response.json();
-      base64Image = data.data?.[0]?.b64_json;
-      if (!base64Image) return res.status(500).json({ error: 'No image in response' });
+      // fal-ai returns image URLs or base64
+      const imgUrl = data.images?.[0]?.url;
+      if (!imgUrl) return res.status(500).json({ error: 'No image in response: ' + JSON.stringify(data) });
+
+      // fetch the image and convert to base64
+      const imgRes = await fetch(imgUrl);
+      base64Image = Buffer.from(await imgRes.arrayBuffer()).toString('base64');
     }
 
     return res.status(200).json({ image: `data:image/jpeg;base64,${base64Image}` });
